@@ -110,7 +110,7 @@ app.post('/boats', async (req, res) => {
 	}
 	if(verifyName(req.body.name)){
 		error = {"Error": "The name is not unique"}
-		res.status(400).send(error);
+		res.status(403).send(error);
 		return;
 	}
 	if(isNaN(req.body.length)){
@@ -170,7 +170,7 @@ app.put('/boats/:id', async (req, res) => {
 	}
 	if(verifyName(req.body.name)){
 		error = {"Error": "The name is not unique"}
-		res.status(400).send(error);
+		res.status(403).send(error);
 		return;
 	}
 	if(isNaN(req.body.length)){
@@ -228,7 +228,7 @@ app.patch('/boats/:id', async (req, res) => {
 	if(req.body.name){
 		if(verifyName(req.body.name)){
 			error = {"Error": "The name is not unique"}
-			res.status(400).send(error);
+			res.status(403).send(error);
 			return;
 		}
 	}
@@ -287,6 +287,18 @@ app.get('/boats/:id', async (req, res) => {
 		res.status(200).send(output);	
 	}
 	
+});
+
+app.delete('/boats', async (req, res) => {
+	res.status(405).end();	
+});
+
+app.put('/boats', async (req, res) => {
+	res.status(405).end();	
+});
+
+app.patch('/boats', async (req, res) => {
+	res.status(405).end();	
 });
 
 
