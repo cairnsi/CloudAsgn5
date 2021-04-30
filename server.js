@@ -23,7 +23,7 @@ function fromDatastore(item){
 
 
 /* ------------- Begin Boat Model Functions ------------- */
-function post_Boat(name, type, length){
+async function post_Boat(name, type, length){
     var key = datastore.key(BOAT);
 	const new_Boat = {"name": name, "type": type, "length": length};
 	return datastore.save({"key":key, "data":new_Boat}).then(() => {return key});
@@ -45,9 +45,9 @@ async function delete_Boat(id){
     return datastore.delete(key);
 }
 
-function patch_Boat(id,name, type, length){
+async function patch_Boat(id,name, type, length){
     const key = datastore.key([BOAT, parseInt(id,10)]);
-	var [boat] = await datastore.get(key);
+	[boat] = await datastore.get(key);
 	if(name){
 		boat.name = name;
 	}
@@ -60,7 +60,7 @@ function patch_Boat(id,name, type, length){
 	return datastore.update({"key":key, "data":boat}).then(() => {return key});
 }
 
-function update_Boat(id,name, type, length){
+async function update_Boat(id,name, type, length){
     const key = datastore.key([BOAT, parseInt(id,10)]);
 	const new_Boat = {"name": name, "type": type, "length": length};
 	return datastore.update({"key":key, "data":new_Boat}).then(() => {return key});
@@ -71,17 +71,17 @@ function boatSelf(item){
 	 return item;
 }
 
-function verifyName(name){
+async function verifyName(name){
 	const q = datastore.createQuery(BOAT);
 	entities = await datastore.runQuery(q);
 	boats = entities[0];
 	foundName = false;
 	boats.forEach(function(boat) {
 		if(boat.name == name){
-			uniqueName = true;
+			foundName = true;
 		}
 	});
-	return uniqueName;
+	return foundName;
 }
 
 /* ------------- End Boat Model Functions ------------- */
@@ -90,7 +90,7 @@ function verifyName(name){
 /* ------------- Boat Routes -------------------------- */
 
 app.post('/boats', async (req, res) => {
-	address = req.protocol + req.get("host");
+	address = req.protocol + "://" + req.get("host");
 	contentType = req.header('Content-type');
 	if(contentType != "application/json"){
 		error = {"Error": "only json accepted"}
@@ -108,7 +108,7 @@ app.post('/boats', async (req, res) => {
 		res.status(400).send(error);
 		return;
 	}
-	if(verifyName(req.body.name)){
+	if(await verifyName(req.body.name)){
 		error = {"Error": "The name is not unique"}
 		res.status(403).send(error);
 		return;
@@ -119,7 +119,7 @@ app.post('/boats', async (req, res) => {
 		return;
 	}
 	if(req.body.name.length > 30){
-		error = {"Error": "Name to long"}
+		error = {"Error": "Name too long"}
 		res.status(400).send(error);
 		return;
 	}
@@ -136,7 +136,7 @@ app.post('/boats', async (req, res) => {
 });
 
 app.delete('/boats/:id', async (req, res) => {
-	address = req.protocol + req.get("host");
+	address = req.protocol + "://" + req.get("host");
 	const key = datastore.key([BOAT, parseInt(req.params.id,10)]);
 	boat = await get_Boat(key);
 	if(boat == null){
@@ -150,7 +150,7 @@ app.delete('/boats/:id', async (req, res) => {
 });
 
 app.put('/boats/:id', async (req, res) => {
-	address = req.protocol + req.get("host");
+	address = req.protocol + "://" + req.get("host");
 	contentType = req.header('Content-type');
 	if(contentType != "application/json"){
 		error = {"Error": "only json accepted"}
@@ -168,7 +168,7 @@ app.put('/boats/:id', async (req, res) => {
 		res.status(400).send(error);
 		return;
 	}
-	if(verifyName(req.body.name)){
+	if(await verifyName(req.body.name)){
 		error = {"Error": "The name is not unique"}
 		res.status(403).send(error);
 		return;
@@ -200,14 +200,12 @@ app.put('/boats/:id', async (req, res) => {
 			boat = await get_Boat(key);
 			res.set("Location", boat.self);
 			res.status(303).end();
-			
-			});
 		}
 	}
 });
 
 app.patch('/boats/:id', async (req, res) => {
-	address = req.protocol + req.get("host");
+	address = req.protocol + "://" + req.get("host");
 	contentType = req.header('Content-type');
 	if(contentType != "application/json"){
 		error = {"Error": "only json accepted"}
@@ -226,7 +224,7 @@ app.patch('/boats/:id', async (req, res) => {
 		return;
 	}
 	if(req.body.name){
-		if(verifyName(req.body.name)){
+		if(await verifyName(req.body.name)){
 			error = {"Error": "The name is not unique"}
 			res.status(403).send(error);
 			return;
@@ -267,7 +265,7 @@ app.patch('/boats/:id', async (req, res) => {
 });
 
 app.get('/boats/:id', async (req, res) => {
-	address = req.protocol + req.get("host");
+	address = req.protocol + "://" + req.get("host");
 	acceptType = req.header('Accept');
 	if(acceptType != "application/json" && acceptType != "text/html"){
 		error = {"Error": "only json or html returned"}
