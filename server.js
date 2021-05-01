@@ -151,16 +151,11 @@ app.delete('/boats/:id', async (req, res) => {
 
 app.put('/boats/:id', async (req, res) => {
 	address = req.protocol + "://" + req.get("host");
+	console.log("log");
 	contentType = req.header('Content-type');
 	if(contentType != "application/json"){
 		error = {"Error": "only json accepted"}
 		res.status(415).send(error);
-		return;
-	}
-	acceptType = req.header('Accept');
-	if(acceptType != "application/json"){
-		error = {"Error": "only json returned"}
-		res.status(406).send(error);
 		return;
 	}
 	if(!req.body.name || !req.body.type || !req.body.length){
